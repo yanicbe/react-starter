@@ -1,6 +1,6 @@
 # Getting Started with Besson IT Solutions Starter
 
-Clone with: `npx create-next-app@latest my-new-next-app -e https://github.com/ralf-boltshauser/react-app-starter`
+Clone with: `npx create-next-app@latest my-new-react-app -e https://github.com/yanicbe/react-starter`
 
 ## Getting Started
 
