@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Inter", Arial, Helvetica, sans-serif;
+      color: #12282A;
+    }
+
+    button:hover {
+      background-color: #010040 !important;
+    }
+
+    .btn {
+      background-color: #12282a;
+      border-radius: 14px;
+      text-decoration: none;
+      padding: 18px 48px;
+      color: white;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 17px;
+      line-height: 38px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .btn:active {
+      background-color: #163c3f;
+    }
+  </style>
+</head>
+
+<body>
+  <div style="width: 100%; display: flex; justify-content: center; align-items: center">
+    <table style="
+          width: 80%;
+          max-width: 640px;
+          margin: 0 auto;
+          padding: 20px;
+          background-color: #fbfbfb;
+          border-radius: 10px;
+          box-shadow: 0 6px 16px #cecece;
+          border: 1px solid rgba(20, 0, 255, 0.1);
+        ">
+      <tr>
+        <td style="text-align: center">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 110" fill="#C0DE60"
+            style="width: 70px; height: 70px">
+            <path fill-rule="evenodd" clip-rule="evenodd"
+              d="M9.16797 54.9998C9.16797 29.6868 29.6883 9.1665 55.0013 9.1665C80.3144 9.1665 100.835 29.6868 100.835 54.9998C100.835 80.3129 80.3144 100.833 55.0013 100.833C29.6883 100.833 9.16797 80.3129 9.16797 54.9998ZM71.9922 49.0741C73.7821 47.2842 73.7821 44.3822 71.9922 42.5923C70.2023 40.8024 67.3003 40.8024 65.5104 42.5923L50.418 57.6847L44.4922 51.7589C42.7023 49.969 39.8003 49.969 38.0104 51.7589C36.2205 53.5488 36.2205 56.4508 38.0104 58.2407L47.1771 67.4074C48.967 69.1973 51.869 69.1973 53.6589 67.4074L71.9922 49.0741Z">
+            </path>
+          </svg>
+          <h1 style="font-size: 32px; line-height: 38px; margin: 16px 0">Account verifizieren</h1>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <h2 style="font-size: 18px; margin-bottom: 10px">Ihre Account Informationen:</h2>
+          <table style="width: 100%">
+            <tr>
+              <td style="padding: 5px 0">Account:</td>
+              <td style="padding: 5px 0">{{ user.email }}</td>
+            </tr>
+            <tr>
+              <td style="padding: 5px 0">Verify Link:</td>
+              <td style="padding: 5px 0">
+                <a href="{{ url }}" style="word-break: break-word; color: #163c3f"> {{ url }} </a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center; padding: 16px 0;">
+          <a href="{{ url }}" class="btn">
+            Account verifizieren
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 10px 0">
+          <p style="font-size: 14px; word-break: break-word">
+            Wenn Sie Probleme mit Ihrem Account haben, kontaktieren Sie unseren Support
+          </p>
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+
+</html>

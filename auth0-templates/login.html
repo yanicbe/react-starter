@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+      <title>Besson IT Solutions Auth</title>
+      <style>
+         * {
+         padding: 0;
+         margin: 0;
+         box-sizing: border-box;
+         }
+         body {
+         font-family: "Inter", sans-serif;
+         }
+         .container {
+         background-color: #f0f4fc;
+         display: flex;
+         /* max-width: 1440px; */
+         margin: 0 auto;
+         min-height: 100vh;
+         /* background: url("team-photo.png") no-repeat #F0F4FC;
+         background-position: bottom right; */
+         /* background-size: cover; */
+         }
+         .left {
+         padding: 2rem;
+         min-width: 591px;
+         width: 60%;
+         display: flex;
+         align-items: center;
+         /* background-color: blanchedalmond; */
+         }
+         .right {
+         /* padding: 0.75rem; */
+         width: 100%;
+         }
+         .tab {
+         width: 100%;
+         }
+         .form-container {
+         width: 100%;
+         padding: 0 4rem;
+         /* background-color: burlywood; */
+         display: flex;
+         align-items: center;
+         flex-direction: column;
+         gap: 11px;
+         }
+         .auth-button {
+         font-size: 14px;
+         padding: 10px 26px;
+         border: 1px solid #ced4da;
+         background-color: white;
+         border-radius: 2rem;
+         text-align: center;
+         text-decoration: none;
+         color: #191919;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         cursor: pointer;
+         }
+         .hidden {
+         display: none !important;
+         }
+         .image-container {
+         width: 100%;
+         height: 100%;
+         display: flex;
+         justify-content: center;
+         align-items: center;
+         background: url("https://dev.flow.7i7.de/team-photo.png") no-repeat #F0F4FC;
+         background-position: bottom right;
+         background-size: contain;
+         }
+         .logo {
+         margin-bottom: 52px;
+         }
+         .title {
+         font-size: 32px;
+         line-height: 38px;
+         font-weight: 700;
+         font-style: normal;
+         color: #12282a;
+         margin-bottom: 16px;
+         }
+         .subtitle {
+         color: #888;
+         font-size: 16px;
+         font-weight: 700;
+         line-height: 38px;
+         margin-bottom: 2em;
+         }
+         .form-label {
+         color: #12282a;
+         font-size: 16px;
+         font-weight: 700;
+         line-height: 38px;
+         }
+         .form-input {
+         display: flex;
+         flex-direction: column;
+         gap: 11px;
+         margin-bottom: 21px;
+         width: 100%;
+         }
+         .form-input input {
+         width: 100%;
+         padding: 2px 24px;
+         border: 1px solid #ced4da;
+         border-radius: 14px;
+         font-size: 14px;
+         line-height: 38px;
+         }
+         .form-warning {
+         color: var(--error, #c20a0a);
+         font-size: 14px;
+         line-height: 20px;
+         }
+         .pass-wrp {
+         position: relative;
+         }
+         .toggle-password {
+         position: absolute;
+         bottom: 11%;
+         right: 10px;
+         transform: translateY(-50%);
+         cursor: pointer;
+         }
+         .forgot a {
+         font-size: 17px;
+         line-height: 38px;
+         color: #acacac;
+         font-weight: 500;
+         text-decoration: none;
+         }
+         .form-submit {
+         background-color: #12282a;
+         border-radius: 14px;
+         padding: 10px;
+         color: white;
+         border: none;
+         outline: none;
+         font-family: inherit;
+         font-weight: 700;
+         font-size: 17px;
+         line-height: 38px;
+         cursor: pointer;
+         width: 100%;
+         }
+         .form-submit:active {
+         background-color: #163c3f;
+         }
+         .form-submit:disabled {
+         background-color: #0c1a1b;
+         }
+         .agreement {
+         display: flex;
+         align-items: flex-start;
+         gap: 12px;
+         }
+         .agreement p {
+         font-size: 14px;
+         line-height: 24px;
+         }
+         .agreement input {
+         margin-top: 0.375rem;
+         }
+         .divider {
+         width: 100%;
+         display: flex;
+         align-items: center;
+         }
+         .divider div {
+         width: 43%;
+         background-color: #ced4da;
+         height: 1px;
+         }
+         .divider span {
+         width: 15%;
+         text-align: center;
+         }
+         .registration {
+         text-align: center;
+         font-size: 18px;
+         line-height: 28px;
+         }
+         .registration span {
+         font-weight: 700;
+         text-decoration: none;
+         color: #283daa;
+         cursor: pointer;
+         }
+         @media screen and (max-width: 768px) {
+         .right {
+         display: none;
+         }
+         .left {
+         width: 100%;
+         margin: 0 auto;
+         }
+         .form-container {
+         padding: 0;
+         }
+         }
+         .eye-closed {
+         display: block;
+         position: absolute;
+         cursor: pointer;
+         right: 12px;
+         height: 100%;
+         display: flex;
+         }
+         .eye-opened {
+         display: block;
+         position: absolute;
+         cursor: pointer;
+         right: 12px;
+         height: 100%;
+         display: flex;
+         }
+         .eye-closed svg {
+         width: 15px;
+         height: 15px;
+         align-self: center;
+         }
+         .eye-opened svg {
+         width: 15px;
+         height: 15px;
+         align-self: center;
+         }
+         .password-parent {
+         display: flex;
+         position: relative;
+         }
+         section {
+         width: 100%;
+         }
+         .info {
+          font-style: italic;
+          font-size: 12px;
+          color: gray;
+         }
+      </style>
+   </head>
+   <body>
+      <div class="container">
+      <div class="left">
+      <section id="login" class="login">
+         <form onsubmit="return false;" method="post">
+            <div class="form-container">
+               <img class="logo" src="https://dev.flow.7i7.de/7i7-logo.svg" width="116" height="127" />
+               <h2 class="title">Bei 7i7® einloggen</h2>
+               <p class="subtitle">Verwalte Deine Aufträge smart.</p>
+               <p class="info">
+                Die neue 7i7 Flow Plattform ist jetzt live. Um deinen Nutzeraccount wieder zu aktivieren klicke auf Passwort vergessen und trage deine E-Mail Adresse ein um ein neues Passwort zu erhalten.
+               </p>
+               <div class="form-input">
+                  <p class="form-label">Deine E-Mail*</p>
+                  <input placeholder="Email" id="email" />
+               </div>
+               <div class="form-input pass-wrp">
+                  <p class="form-label">Dein Passwort*</p>
+                  <div class="password-parent">
+                     <input placeholder="Passwort" type="password" id="password" />
+                     <div class="eye-closed">
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                           <path
+                              d="M13.3536 2.35355C13.5488 2.15829 13.5488 1.84171 13.3536 1.64645C13.1583 1.45118 12.8417 1.45118 12.6464 1.64645L10.6828 3.61012C9.70652 3.21671 8.63759 3 7.5 3C4.30786 3 1.65639 4.70638 0.0760002 7.23501C-0.0253338 7.39715 -0.0253334 7.60288 0.0760014 7.76501C0.902945 9.08812 2.02314 10.1861 3.36061 10.9323L1.64645 12.6464C1.45118 12.8417 1.45118 13.1583 1.64645 13.3536C1.84171 13.5488 2.15829 13.5488 2.35355 13.3536L4.31723 11.3899C5.29348 11.7833 6.36241 12 7.5 12C10.6921 12 13.3436 10.2936 14.924 7.76501C15.0253 7.60288 15.0253 7.39715 14.924 7.23501C14.0971 5.9119 12.9769 4.81391 11.6394 4.06771L13.3536 2.35355ZM9.90428 4.38861C9.15332 4.1361 8.34759 4 7.5 4C4.80285 4 2.52952 5.37816 1.09622 7.50001C1.87284 8.6497 2.89609 9.58106 4.09974 10.1931L9.90428 4.38861ZM5.09572 10.6114L10.9003 4.80685C12.1039 5.41894 13.1272 6.35031 13.9038 7.50001C12.4705 9.62183 10.1971 11 7.5 11C6.65241 11 5.84668 10.8639 5.09572 10.6114Z"
+                              fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+                        </svg>
+                     </div>
+                     <div class="eye-opened" class="hidden">
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" display="block"
+                           xmlns="http://www.w3.org/2000/svg">
+                           <path
+                              d="M7.5 11C4.80285 11 2.52952 9.62184 1.09622 7.50001C2.52952 5.37816 4.80285 4 7.5 4C10.1971 4 12.4705 5.37816 13.9038 7.50001C12.4705 9.62183 10.1971 11 7.5 11ZM7.5 3C4.30786 3 1.65639 4.70638 0.0760002 7.23501C-0.0253338 7.39715 -0.0253334 7.60288 0.0760014 7.76501C1.65639 10.2936 4.30786 12 7.5 12C10.6921 12 13.3436 10.2936 14.924 7.76501C15.0253 7.60288 15.0253 7.39715 14.924 7.23501C13.3436 4.70638 10.6921 3 7.5 3ZM7.5 9.5C8.60457 9.5 9.5 8.60457 9.5 7.5C9.5 6.39543 8.60457 5.5 7.5 5.5C6.39543 5.5 5.5 6.39543 5.5 7.5C5.5 8.60457 6.39543 9.5 7.5 9.5Z"
+                              fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+                        </svg>
+                     </div>
+                     <p class="form-warning"></p>
+                  </div>
+                  <p class="forgot"><a class="forgot-password" href="#">Passwort vergessen?</a></p>
+                  <p class="form-warning error-message"></p>
+                  <button class="form-submit" type="submit" id="btn-login">Login</button>
+               </div>
+         </form>
+      </section>
+      <section id="register" class="hidden register">
+      <form onsubmit="return false;" method="post">
+      <div class="form-container">
+      <img class="logo" src="https://dev.flow.7i7.de/7i7-logo.svg" width="116" height="127" />
+      <h2 class="title">Bei 7i7® registrieren</h2>
+      <p class="subtitle">Verwalte Deine Aufträge smart.</p>
+      <div class="form-input">
+      <p class="form-label">Deine E-Mail*</p>
+      <input placeholder="Email" id="register-email" />
+      </div>
+      <div class="form-input pass-wrp">
+      <p class="form-label">Dein Passwort*</p>
+      <div class="password-parent">
+      <input placeholder="Passwort" type="password" id="register-password" />
+      <div class="eye-closed">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+         d="M13.3536 2.35355C13.5488 2.15829 13.5488 1.84171 13.3536 1.64645C13.1583 1.45118 12.8417 1.45118 12.6464 1.64645L10.6828 3.61012C9.70652 3.21671 8.63759 3 7.5 3C4.30786 3 1.65639 4.70638 0.0760002 7.23501C-0.0253338 7.39715 -0.0253334 7.60288 0.0760014 7.76501C0.902945 9.08812 2.02314 10.1861 3.36061 10.9323L1.64645 12.6464C1.45118 12.8417 1.45118 13.1583 1.64645 13.3536C1.84171 13.5488 2.15829 13.5488 2.35355 13.3536L4.31723 11.3899C5.29348 11.7833 6.36241 12 7.5 12C10.6921 12 13.3436 10.2936 14.924 7.76501C15.0253 7.60288 15.0253 7.39715 14.924 7.23501C14.0971 5.9119 12.9769 4.81391 11.6394 4.06771L13.3536 2.35355ZM9.90428 4.38861C9.15332 4.1361 8.34759 4 7.5 4C4.80285 4 2.52952 5.37816 1.09622 7.50001C1.87284 8.6497 2.89609 9.58106 4.09974 10.1931L9.90428 4.38861ZM5.09572 10.6114L10.9003 4.80685C12.1039 5.41894 13.1272 6.35031 13.9038 7.50001C12.4705 9.62183 10.1971 11 7.5 11C6.65241 11 5.84668 10.8639 5.09572 10.6114Z"
+         fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+      </svg>
+      </div>
+      <div class="eye-opened" class="hidden">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" display="block"
+         xmlns="http://www.w3.org/2000/svg">
+      <path
+         d="M7.5 11C4.80285 11 2.52952 9.62184 1.09622 7.50001C2.52952 5.37816 4.80285 4 7.5 4C10.1971 4 12.4705 5.37816 13.9038 7.50001C12.4705 9.62183 10.1971 11 7.5 11ZM7.5 3C4.30786 3 1.65639 4.70638 0.0760002 7.23501C-0.0253338 7.39715 -0.0253334 7.60288 0.0760014 7.76501C1.65639 10.2936 4.30786 12 7.5 12C10.6921 12 13.3436 10.2936 14.924 7.76501C15.0253 7.60288 15.0253 7.39715 14.924 7.23501C13.3436 4.70638 10.6921 3 7.5 3ZM7.5 9.5C8.60457 9.5 9.5 8.60457 9.5 7.5C9.5 6.39543 8.60457 5.5 7.5 5.5C6.39543 5.5 5.5 6.39543 5.5 7.5C5.5 8.60457 6.39543 9.5 7.5 9.5Z"
+         fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+      </svg>
+      </div>
+      </div>
+      </div>
+      <div class="form-input pass-wrp">
+      <p class="form-label">Wiederhole das Passwort*</p>
+      <div class="password-parent">
+      <input placeholder="Passwort" type="password" id="register-password-retry" />
+      <div class="eye-closed">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path
+         d="M13.3536 2.35355C13.5488 2.15829 13.5488 1.84171 13.3536 1.64645C13.1583 1.45118 12.8417 1.45118 12.6464 1.64645L10.6828 3.61012C9.70652 3.21671 8.63759 3 7.5 3C4.30786 3 1.65639 4.70638 0.0760002 7.23501C-0.0253338 7.39715 -0.0253334 7.60288 0.0760014 7.76501C0.902945 9.08812 2.02314 10.1861 3.36061 10.9323L1.64645 12.6464C1.45118 12.8417 1.45118 13.1583 1.64645 13.3536C1.84171 13.5488 2.15829 13.5488 2.35355 13.3536L4.31723 11.3899C5.29348 11.7833 6.36241 12 7.5 12C10.6921 12 13.3436 10.2936 14.924 7.76501C15.0253 7.60288 15.0253 7.39715 14.924 7.23501C14.0971 5.9119 12.9769 4.81391 11.6394 4.06771L13.3536 2.35355ZM9.90428 4.38861C9.15332 4.1361 8.34759 4 7.5 4C4.80285 4 2.52952 5.37816 1.09622 7.50001C1.87284 8.6497 2.89609 9.58106 4.09974 10.1931L9.90428 4.38861ZM5.09572 10.6114L10.9003 4.80685C12.1039 5.41894 13.1272 6.35031 13.9038 7.50001C12.4705 9.62183 10.1971 11 7.5 11C6.65241 11 5.84668 10.8639 5.09572 10.6114Z"
+         fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+      </svg>
+      </div>
+      <div class="eye-opened" class="hidden">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none" display="block"
+         xmlns="http://www.w3.org/2000/svg">
+      <path
+         d="M7.5 11C4.80285 11 2.52952 9.62184 1.09622 7.50001C2.52952 5.37816 4.80285 4 7.5 4C10.1971 4 12.4705 5.37816 13.9038 7.50001C12.4705 9.62183 10.1971 11 7.5 11ZM7.5 3C4.30786 3 1.65639 4.70638 0.0760002 7.23501C-0.0253338 7.39715 -0.0253334 7.60288 0.0760014 7.76501C1.65639 10.2936 4.30786 12 7.5 12C10.6921 12 13.3436 10.2936 14.924 7.76501C15.0253 7.60288 15.0253 7.39715 14.924 7.23501C13.3436 4.70638 10.6921 3 7.5 3ZM7.5 9.5C8.60457 9.5 9.5 8.60457 9.5 7.5C9.5 6.39543 8.60457 5.5 7.5 5.5C6.39543 5.5 5.5 6.39543 5.5 7.5C5.5 8.60457 6.39543 9.5 7.5 9.5Z"
+         fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"></path>
+      </svg>
+      </div>
+      <p class="form-warning"></p>
+      </div>
+      <p class="forgot"><a class="forgot-password" href="#">Passwort vergessen?</a></p>
+      <p class="form-warning error-message"></p>
+      <button class="form-submit" type="submit" id="btn-register">Registrieren</button>
+      </form>
+      </div>
+      </section>
+      </div>
+      <div class="captcha-container form-group"></div>
+      <div class="right">
+      <div class="image-container">
+      <!--<img src="7i7-main-bg.jpg" />-->
+      </div>
+      </div>
+      </div>
+      <script src="https://cdn.auth0.com/js/auth0/9.18/auth0.min.js"></script>
+      <script src="https://cdn.auth0.com/js/polyfills/1.0/object-assign.min.js"></script>
+      <script>
+         window.addEventListener("load", function () {
+           if (window.location.hash === "#register") {
+             document.querySelector(".login").classList.add("hidden");
+             document.querySelector(".register").classList.remove("hidden");
+           }
+         
+           function togglePasswordVisibility(toDisplay, toHide, parent) {
+             var x = parent.querySelector("input");
+             parent.getElementsByClassName(toDisplay)[0].classList.remove("hidden");
+             parent.getElementsByClassName(toHide)[0].classList.add("hidden");
+             if (x.type === "password") {
+               x.type = "text";
+             } else {
+               x.type = "password";
+             }
+           }
+         
+           var config = JSON.parse(decodeURIComponent(escape(window.atob("@@config@@"))));
+         
+           var leeway = config.internalOptions.leeway;
+           if (leeway) {
+             var convertedLeeway = parseInt(leeway);
+         
+             if (!isNaN(convertedLeeway)) {
+               config.internalOptions.leeway = convertedLeeway;
+             }
+           }
+         
+           var params = {
+             overrides: {
+               __tenant: config.auth0Tenant,
+               __token_issuer: config.authorizationServer.issuer,
+             },
+             domain: config.auth0Domain,
+             clientID: config.clientID,
+             redirectUri: config.callbackURL,
+             responseType: "code",
+             scope: config.internalOptions.scope,
+             _csrf: config.internalOptions._csrf,
+             state: config.internalOptions.state,
+             _intstate: config.internalOptions._intstate,
+           };
+         
+           var triggerCaptcha = null;
+           var webAuth = new auth0.WebAuth(params);
+           var databaseConnection = "Username-Password-Authentication";
+           var captcha = webAuth.renderCaptcha(document.querySelector(".captcha-container"), null, (error, payload) => {
+             if (payload) {
+               triggerCaptcha = payload.triggerCaptcha;
+             }
+           });
+         
+           function login(e) {
+             e.preventDefault();
+             var button = this;
+             var username = document.getElementById("email").value;
+             var password = document.getElementById("password").value;
+             button.disabled = true;
+             var request = () => {
+               webAuth.login(
+                 {
+                   realm: databaseConnection,
+                   username: username,
+                   password: password,
+                   captcha: captcha.getValue(),
+                 },
+                 function (err) {
+                   if (err) displayError(err);
+                   button.disabled = false;
+                 }
+               );
+             };
+             if (triggerCaptcha) {
+               triggerCaptcha(request);
+             } else {
+               request();
+             }
+           }
+         
+           function signup() {
+             var button = this;
+             var email = document.getElementById("register-email").value;
+             var password = document.getElementById("register-password").value;
+             var passwordRetry = document.getElementById("register-password-retry").value;
+             if (password === passwordRetry) {
+               button.disabled = true;
+               webAuth.redirect.signupAndLogin(
+                 {
+                   connection: databaseConnection,
+                   email: email,
+                   password: password,
+                   captcha: captcha.getValue(),
+                 },
+                 function (err) {
+                   if (err) displayError(err);
+                   button.disabled = false;
+                 }
+               );
+             } else {
+               displayError({
+                  description: "Passwords do not match",
+               });
+             }
+           }
+         
+           function displayError(err) {
+             captcha.reload();
+             Array.from(document.getElementsByClassName("error-message")).forEach(function (element) {
+                 element.innerText = err.policy || err.description || "An error occurred";
+                 element.style.display = "block";
+             });
+           }
+         
+           function switchMode() {
+             var login = document.querySelector(".login");
+             var register = document.querySelector(".register");
+             if (login.classList.contains("hidden")) {
+               login.classList.remove("hidden");
+               register.classList.add("hidden");
+             } else {
+               login.classList.add("hidden");
+               register.classList.remove("hidden");
+             }
+           }
+         
+           function forgotPassword() {
+             window.location.href = config.callbackURL + "/reset";
+           }
+         
+           document.getElementById("btn-login").addEventListener("click", login);
+           document.getElementById("btn-register").addEventListener("click", signup);
+           Array.from(document.getElementsByClassName("forgot-password")).forEach(function (element) {
+             element.addEventListener("click", forgotPassword);
+           });
+         
+           Array.from(document.getElementsByClassName("switch-mode")).forEach(function (element) {
+             element.addEventListener("click", switchMode);
+           });
+         
+           Array.from(document.getElementsByClassName("eye-closed")).forEach(function (element) {
+             element.addEventListener("click", (e) => {
+               togglePasswordVisibility("eye-opened", "eye-closed", e.target.closest(".password-parent"));
+             });
+           });
+         
+           Array.from(document.getElementsByClassName("eye-opened")).forEach(function (element) {
+             element.addEventListener("click", (e) => {
+               togglePasswordVisibility("eye-closed", "eye-opened", e.target.closest(".password-parent"));
+             });
+           });
+         });
+      </script>
+   </body>
+</html>

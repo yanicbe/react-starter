@@ -1,0 +1,33 @@
+{
+  "editor.formatOnPaste": true,
+  "editor.inlineSuggest.enabled": true,
+  "git.enableSmartCommit": true,
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": true,
+    "markdown": true,
+    "scminput": false,
+    "yaml": true
+  },
+  "editor.tabSize": 2,
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "workbench.iconTheme": "vscode-icons",
+  "codesnap.shutterAction": "copy",
+  "explorer.confirmDelete": false,
+  "editor.codeActionsOnSave": [
+    "source.addMissingImports",
+    "source.organizeImports",
+    "source.fixAll",
+    "source.fixAll.eslint"
+  ],
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "window.zoomLevel": 1,
+  "editor.formatOnSave": true,
+  "errorLens.enabledDiagnosticLevels": ["warning", "info", "error"]
+}
