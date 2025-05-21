@@ -1,9 +1,6 @@
-export enum UserRole {
-  Admin = "ADMIN",
-  User = "USER",
-}
+import { Role } from "./utils";
 
 export interface UserInformationResponseDto {
-  userRole: UserRole;
+  userRole: Role;
   profilePictureBase64: string;
 }

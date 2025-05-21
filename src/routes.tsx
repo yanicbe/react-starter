@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useNavigate, useRoutes } from "react-router-dom";
 import PageNotFound from "./page-components/error/page-not-found";
 import Home from "./page-components/home/page";
-import RegisterInformationsParent from "./page-components/register/informations/page";
 import Logout from "./page-components/register/logout/page";
 import Register from "./page-components/register/page";
 import ResetPassword from "./page-components/register/reset-password";
@@ -49,10 +48,6 @@ const Routes = () => {
       element: <Home />,
       // TODO - remove the comment from the code below as soon as the .env is set up
       // element: isProfileComplete ? getElement("/", <Home />, "das Dashboard") : element,
-    },
-    {
-      path: "/register/info",
-      element: <RegisterInformationsParent />,
     },
     { path: "/logout", element: <Logout /> },
     { path: "/verification/mail", element: <MailVerification /> },

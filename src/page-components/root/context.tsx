@@ -6,19 +6,15 @@ import React, { Dispatch, ReactNode, SetStateAction, useContext, useEffect, useS
 import useApiRequest from "../../lib/hooks/use-request";
 
 interface IContext {
-  isMobile: boolean;
   accessToken: string;
-  isBanned: boolean;
-  user?: UserInformationResponseDto; // UserPrivateResponseDto
+  user?: UserInformationResponseDto;
   error?: Error;
-  setIsBanned?: Dispatch<SetStateAction<boolean>>;
   setAccessToken?: Dispatch<SetStateAction<string>>;
   setUser?: Dispatch<SetStateAction<UserInformationResponseDto | undefined>>;
   setError?: Dispatch<SetStateAction<Error | undefined>>;
 }
 
 export enum ErrorEntity {
-  NoOrganizationForbidden = "NoOrganizationForbidden",
   UserForbidden = "UserForbidden",
 }
 
@@ -38,29 +34,14 @@ export interface Error {
 }
 
 export const Context = React.createContext<IContext>({
-  isMobile: false,
   accessToken: "",
-  isBanned: false,
 });
 
 export const ContextProvider = ({ children }: any) => {
-  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth <= 768);
   const [accessToken, setAccessToken] = useState<string>("");
   const [user, setUser] = useState<any | undefined>();
-  const [isBanned, setIsBanned] = useState<boolean>(false);
   const [error, setError] = useState<Error>();
   const auth0 = useAuth0();
-
-  const handleWindowSizeChange = () => {
-    setIsMobile(window.innerWidth <= 768);
-  };
-
-  useEffect(() => {
-    window.addEventListener("resize", handleWindowSizeChange);
-    return () => {
-      window.removeEventListener("resize", handleWindowSizeChange);
-    };
-  }, []);
 
   useEffect(() => {
     const fetchAccessToken = async () => {
@@ -93,28 +74,25 @@ export const ContextProvider = ({ children }: any) => {
   }, [auth0, auth0.isAuthenticated]);
 
   const value = {
-    isMobile,
     accessToken,
     user,
-    isBanned,
+    error,
     setAccessToken,
     setUser,
-    setIsBanned,
-    error,
     setError,
   };
 
   return (
     <Context.Provider value={value}>
-      <UserFetch>
+      <BaseApiCall>
         {children}
         <ErrorModal />
-      </UserFetch>
+      </BaseApiCall>
     </Context.Provider>
   );
 };
 
-const UserFetch = ({ children }: { children: ReactNode }) => {
+const BaseApiCall = ({ children }: { children: ReactNode }) => {
   const { apiRequest } = useApiRequest();
   const { accessToken, setUser, user } = useContext(Context);
   const [isFinished, setIsFinished] = useState<boolean>(false);

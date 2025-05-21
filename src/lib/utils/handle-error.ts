@@ -33,11 +33,7 @@ export const getErrorMessage = async (res: Response) => {
     errorMessage = `${res.status} - Es ist ein Fehler aufgetreten. Bitte versuche es später nochmals oder kontaktiere den Support`;
   }
 
-  if (error.error === ErrorEntity.NoOrganizationForbidden) {
-    errorLocation = "/register/info";
-    error.entity = ErrorEntity.NoOrganizationForbidden;
-    redirect = true;
-  } else if (error.error === ErrorEntity.UserForbidden) {
+  if (error.error === ErrorEntity.UserForbidden) {
     errorLocation = "/";
     error.entity = ErrorEntity.UserForbidden;
     redirect = true;

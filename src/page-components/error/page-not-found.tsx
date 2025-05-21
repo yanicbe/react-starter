@@ -12,10 +12,10 @@ const PageNotFound = () => {
 
   return (
     <div className="h-full">
-      <div className="w-1/2 m-auto h-full flex flex-col justify-center">
+      <div className="w-1/2 m-auto h-full flex flex-col mt-40">
         <H2 className="mb-20 text-center">Diese Seite wurde nicht gefunden</H2>
         <p className="text-center">Wenn das ein Fehler sein sollte, kontaktieren Sie den Support</p>
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-center">
           <Link to="/support">
             <Button className="mt-5" variant="outline">
               Support kontaktieren

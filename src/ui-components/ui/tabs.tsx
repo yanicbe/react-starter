@@ -1,4 +1,4 @@
-import { cn } from "@/lib/hooks/utils";
+import { cn } from "@/lib/utils/cn";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import * as React from "react";
 

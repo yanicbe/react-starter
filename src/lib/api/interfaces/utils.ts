@@ -9,27 +9,8 @@ export interface Paginated<T> {
   docs: T[];
 }
 
-export interface MissingEntityConflictExceptionDto {
-  message: string;
-  error: string;
-  statusCode: number;
-  entity: string;
-}
-
-export interface ISidebarItem {
-  title: string;
-  icon: JSX.Element;
-  link: string;
-  end?: boolean;
-  isActive?: boolean;
-}
-
-export interface Pagination {
-  pageIndex: number;
-  pageSize: number;
-}
-
-export interface JobFileResponseDto {
-  path: string;
-  name: string;
+export enum Role {
+  SuperAdmin = "SUPER_ADMIN",
+  Admin = "ADMIN",
+  User = "USER",
 }
