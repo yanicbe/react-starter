@@ -1,7 +1,6 @@
 import React from "react";
 
 import { Auth0Provider } from "@auth0/auth0-react";
-import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { useLocation } from "react-router-dom";
 import Sidebar from "../navigation/sidebar";
 import { ContextProvider } from "./context";

@@ -1,6 +1,5 @@
 import LightningIcon from "@/ui-components/icons/lightning-icon";
 import SupportIcon from "@/ui-components/icons/support-icon";
-import MyAvatar from "@/ui-components/ui/my-avatar";
 import { LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -76,7 +75,6 @@ const Sidebar = () => {
             <SidebarItem key={item.link} {...item} isActive={location.pathname === item.link} />
           ))}
       </nav>
-      <MyAvatar />
     </div>
   );
 };

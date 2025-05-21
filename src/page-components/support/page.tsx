@@ -1,4 +1,3 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/ui-components/ui/accordion";
 import { Button } from "@/ui-components/ui/button";
 import { Mail, Phone, PhoneCall } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -87,41 +86,6 @@ const Support = () => {
           </div>
         </div>
       </div>
-
-      <Accordion type="single" defaultValue="item-1" collapsible className="w-full gap-3 flex flex-col mt-12">
-        <AccordionItem value="item-1">
-          <AccordionTrigger>
-            <div className="flex items-center justify-between w-full h-9">
-              <p>An wen wende ich mich bei einem Problem innerhalb eines Projektes?</p>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent>
-            Bei Problemen innerhalb eines Projektes, kann der Ansprechpartner, welcher für das Projekt zugeteilt wurde,
-            weiterhelfen. Dieser ist über die Chatfunktion im jeweiligen Projekt zu erreichen.
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item-2">
-          <AccordionTrigger>
-            <div className="flex items-center justify-between w-full h-9">
-              Wer kann mir bei Problemen mit weiterhelfen?
-            </div>
-          </AccordionTrigger>
-          <AccordionContent>
-            Sollten Probleme mit auftreten, kann sich an den Head of design gewendet werden. Bei dringlichen Problemen
-            ist es ideal diesen anzurufen, ansonsten ist dieser ebenfalls über E-Mail zu erreichen.
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item-3">
-          <AccordionTrigger>
-            <div className="flex items-center justify-between w-full h-9">
-              Wer ist für Probleme bei Abrechnungen und Zahlungen zu kontaktieren?
-            </div>
-          </AccordionTrigger>
-          <AccordionContent>
-            Wenn es Probleme bei Abrechnungen oder Zahlungen gibt, steht Accounting als Kontaktperson zur Verfügung.
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
     </div>
   );
 };

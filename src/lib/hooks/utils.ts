@@ -1,6 +1,4 @@
 import { type ClassValue, clsx } from "clsx";
-import { ContentState, convertFromHTML, EditorState } from "draft-js";
-import htmlToDraft from "html-to-draftjs";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -105,34 +103,3 @@ export const parseStatus = (status: string) => {
       return status;
   }
 }
-
-export const convertHtmlToEditorState = (html: string): EditorState => {
-  let processedHtml;
-  if (html.includes("<p>")) {
-    processedHtml = html.replaceAll('&#8205;', "").replaceAll(`\n<p></p>\n`, '<p>&#8205;</p>');
-  } else {
-    processedHtml = html.replaceAll('&#8205;', "").replaceAll(`\n\n`, '<p>&#8205;</p>');
-    if (processedHtml.includes("\n")) {
-      let finalHtml = "";
-      processedHtml.split("\n").forEach((line) => {
-        finalHtml += `<p>${line}</p>`;
-      });
-      processedHtml = finalHtml;
-    }
-  }
-  const blocksFromHTML = convertFromHTML(processedHtml);
-  const contentState = ContentState.createFromBlockArray(
-    blocksFromHTML.contentBlocks,
-    blocksFromHTML.entityMap
-  );
-  return EditorState.createWithContent(contentState);
-};
-
-
-export const convertHtmlToContentState = (html: string) => {
-  const contentBlock = htmlToDraft(html);
-  if (contentBlock) {
-    return ContentState.createFromBlockArray(contentBlock.contentBlocks);
-  }
-  return ContentState.createFromText('');
-};

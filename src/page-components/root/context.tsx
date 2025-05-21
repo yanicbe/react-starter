@@ -1,9 +1,8 @@
-import { UserInformationResponseDto } from "@/lib/interfaces/user";
+import { UserInformationResponseDto } from "@/lib/api/interfaces/user";
 import ErrorModal from "@/ui-components/ui/error-modal";
 import Preloader from "@/ui-components/ui/preloader";
 import { useAuth0 } from "@auth0/auth0-react";
 import React, { Dispatch, ReactNode, SetStateAction, useContext, useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
 import useApiRequest from "../../lib/hooks/use-request";
 
 interface IContext {
@@ -45,15 +44,6 @@ export const Context = React.createContext<IContext>({
 });
 
 export const ContextProvider = ({ children }: any) => {
-  const setSessionToken = () => {
-    const currentSessionToken = sessionStorage.getItem("session_token");
-    if (!currentSessionToken) {
-      sessionStorage.setItem("session_token", uuidv4());
-    }
-  };
-
-  setSessionToken();
-
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth <= 768);
   const [accessToken, setAccessToken] = useState<string>("");
   const [user, setUser] = useState<any | undefined>();
