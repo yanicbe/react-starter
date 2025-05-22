@@ -10,7 +10,7 @@ export interface Paginated<T> {
 }
 
 export enum Role {
-  SuperAdmin = "SUPER_ADMIN",
+  SuperAdmin = "SUPERADMIN",
   Admin = "ADMIN",
   User = "USER",
 }

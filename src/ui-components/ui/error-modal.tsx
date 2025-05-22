@@ -1,4 +1,4 @@
-import { Context } from "@/page-components/root/context";
+import { Context } from "@/util-components/root/context";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useContext, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";

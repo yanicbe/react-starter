@@ -1,15 +1,8 @@
 import { Button } from "@/ui-components/ui/button";
 import { H2 } from "@/ui-components/ui/headings";
-import { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const PageNotFound = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    navigate("/benutzer");
-  }, [navigate]);
-
   return (
     <div className="h-full">
       <div className="w-1/2 m-auto h-full flex flex-col mt-40">

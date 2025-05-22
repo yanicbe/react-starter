@@ -1,4 +1,6 @@
+import { Role } from "@/lib/api/interfaces/utils";
 import { cn } from "@/lib/utils/cn";
+import { hasRolePermission } from "@/lib/utils/role-manager";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,45 +16,56 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/ui-components/ui/sidebar";
-import { Calendar, ChevronUp, Home, Inbox, Search, Settings, User2 } from "lucide-react";
+import { ChevronUp, Home, LogOut, Settings, User2, Wrench } from "lucide-react";
+import { useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { Context } from "./context";
 
-const items = [
-  {
-    title: "Home",
-    url: "/",
-    icon: Home,
-  },
-  {
-    title: "Inbox",
-    url: "/inbox",
-    icon: Inbox,
-  },
-  {
-    title: "Calendar",
-    url: "/calendar",
-    icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "/search",
-    icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
-];
+const sidebarHome = {
+  title: "Home",
+  url: "/",
+  icon: Home,
+};
+
+const sidebarAdmin = {
+  title: "Admin",
+  url: "/admin",
+  icon: Wrench,
+};
+
+const bottomMenuSettings = {
+  title: "Settings",
+  url: "/settings",
+  icon: Settings,
+};
+
+const bottomMenuSignOut = {
+  title: "Sign out",
+  url: "/sign-out",
+  icon: LogOut,
+};
 
 const AppSidebar = () => {
-  const excludeSidebar = ["/register/info", "/reset", "/verification/mail"];
+  const excludeSidebar = ["/register", "/reset", "/verification/mail"];
+  const { user } = useContext(Context);
 
   const location = useLocation();
 
-  if (excludeSidebar.includes(location.pathname)) {
+  if (excludeSidebar.includes(location.pathname) || !user) {
     return null;
   }
+
+  const sidebarItems = [];
+
+  sidebarItems.push(sidebarHome);
+  if (hasRolePermission(user.userRole, Role.Admin)) {
+    sidebarItems.push(sidebarAdmin);
+  }
+
+  const bottomMenuItems = [];
+
+  bottomMenuItems.push(bottomMenuSettings);
+  bottomMenuItems.push(bottomMenuSignOut);
 
   return (
     <Sidebar>
@@ -65,7 +78,7 @@ const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent className="px-2 py-4">
         <SidebarMenu className="space-y-1">
-          {items.map((item) => {
+          {sidebarItems.map((item) => {
             const isActive = location.pathname === item.url;
             return (
               <SidebarMenuItem key={item.title}>
@@ -101,15 +114,14 @@ const AppSidebar = () => {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" className="w-[--radix-popper-anchor-width]">
-                <DropdownMenuItem>
-                  <span>Account</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <span>Billing</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <span>Sign out</span>
-                </DropdownMenuItem>
+                {bottomMenuItems.map((item) => (
+                  <DropdownMenuItem key={item.title} className="hover:bg-muted cursor-pointer">
+                    <Link to={item.url} className="flex items-center gap-2 w-full">
+                      <item.icon className="text-muted-foreground" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>

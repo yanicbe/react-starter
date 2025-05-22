@@ -1,4 +1,4 @@
-import { ErrorEntity, Error as ErrorI } from "@/page-components/root/context";
+import { ErrorEntity, Error as ErrorI } from "@/util-components/root/context";
 
 export const getErrorMessage = async (res: Response) => {
   let errorMessage = "";
