@@ -1,10 +1,11 @@
-import { Role } from "../api/interfaces/utils";
+import { UserInfoUserRole } from "../api/interfaces/user-profile.interface";
 
 // Define role hierarchy (higher number = more permissions)
-const ROLE_HIERARCHY: Record<Role, number> = {
-  [Role.User]: 1,
-  [Role.Admin]: 2,
-  [Role.SuperAdmin]: 3,
+const ROLE_HIERARCHY: Record<UserInfoUserRole, number> = {
+  [UserInfoUserRole.USER]: 1,
+  [UserInfoUserRole.TEAMLEADER]: 2,
+  [UserInfoUserRole.ADMIN]: 3,
+  [UserInfoUserRole.SUPERADMIN]: 4,
 };
 
 /**
@@ -13,7 +14,7 @@ const ROLE_HIERARCHY: Record<Role, number> = {
  * @param requiredRole - The minimum required role for access
  * @returns boolean - true if user has permission
  */
-export function hasRolePermission(userRole: Role, requiredRole: Role): boolean {
+export function hasRolePermission(userRole: UserInfoUserRole, requiredRole: UserInfoUserRole): boolean {
   const userLevel = ROLE_HIERARCHY[userRole];
   const requiredLevel = ROLE_HIERARCHY[requiredRole];
 
@@ -26,7 +27,7 @@ export function hasRolePermission(userRole: Role, requiredRole: Role): boolean {
  * @param allowedRoles - Array of roles that are allowed
  * @returns boolean - true if user has any of the allowed roles
  */
-export function hasAnyRole(userRole: Role, allowedRoles: Role[]): boolean {
+export function hasAnyRole(userRole: UserInfoUserRole, allowedRoles: UserInfoUserRole[]): boolean {
   return allowedRoles.some(role => hasRolePermission(userRole, role));
 }
 
@@ -35,9 +36,9 @@ export function hasAnyRole(userRole: Role, allowedRoles: Role[]): boolean {
  * @param roleString - Role as string from API
  * @returns Role enum or null if invalid
  */
-export function parseRole(roleString: string): Role | null {
-  if (Object.values(Role).includes(roleString as Role)) {
-    return roleString as Role;
+export function parseRole(roleString: string): UserInfoUserRole | null {
+  if (Object.values(UserInfoUserRole).includes(roleString as UserInfoUserRole)) {
+    return roleString as UserInfoUserRole;
   }
   return null;
 }

@@ -1,5 +1,5 @@
 // src/components/ProtectedRoute.tsx
-import { Role } from "@/lib/api/interfaces/utils";
+import { UserInfoUserRole } from "@/lib/api/interfaces/user-profile.interface";
 import { hasAnyRole, hasRolePermission, parseRole } from "@/lib/utils/role-manager";
 import { BlueLoadingFallback } from "@/ui-components/ui/suspense-wrapper";
 import React, { ReactNode, useContext } from "react";
@@ -8,9 +8,9 @@ import { Context } from "./context";
 interface ProtectedRouteProps {
   children: ReactNode;
   // Option 1: Single minimum required role (hierarchical)
-  minRole?: Role;
+  minRole?: UserInfoUserRole;
   // Option 2: Array of specific allowed roles (exact match)
-  allowedRoles?: Role[];
+  allowedRoles?: UserInfoUserRole[];
   // Custom fallback component for unauthorized access
   fallback?: ReactNode;
   // Redirect path for unauthorized users
@@ -82,7 +82,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
 // Convenience components for common role checks
 export const AdminOnlyRoute: React.FC<{ children: ReactNode; fallback?: ReactNode }> = ({ children, fallback }) => (
-  <ProtectedRoute minRole={Role.Admin} fallback={fallback}>
+  <ProtectedRoute minRole={UserInfoUserRole.ADMIN} fallback={fallback}>
     {children}
   </ProtectedRoute>
 );
@@ -91,7 +91,7 @@ export const SuperAdminOnlyRoute: React.FC<{ children: ReactNode; fallback?: Rea
   children,
   fallback,
 }) => (
-  <ProtectedRoute minRole={Role.SuperAdmin} fallback={fallback}>
+  <ProtectedRoute minRole={UserInfoUserRole.SUPERADMIN} fallback={fallback}>
     {children}
   </ProtectedRoute>
 );

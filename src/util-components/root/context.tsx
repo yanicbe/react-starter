@@ -1,6 +1,6 @@
 import { queryClient } from "@/lib/api/client";
-import { UserInformationResponseDto } from "@/lib/api/interfaces/user.interface";
-import { useCurrentUser } from "@/lib/api/requests/user.requests";
+import { UserInfoResponseDto } from "@/lib/api/interfaces/user-profile.interface";
+import { useUserProfileuserinfo } from "@/lib/api/requests/user-profile.requests";
 import ErrorModal from "@/ui-components/ui/error-modal";
 import { BlueLoadingFallback, SuspenseWrapper } from "@/ui-components/ui/suspense-wrapper";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -10,10 +10,10 @@ import React, { Dispatch, ReactNode, SetStateAction, useContext, useEffect, useS
 
 interface IContext {
   accessToken: string;
-  user?: UserInformationResponseDto;
+  user?: UserInfoResponseDto;
   error?: Error;
   setAccessToken?: Dispatch<SetStateAction<string>>;
-  setUser?: Dispatch<SetStateAction<UserInformationResponseDto | undefined>>;
+  setUser?: Dispatch<SetStateAction<UserInfoResponseDto | undefined>>;
   setError?: Dispatch<SetStateAction<Error | undefined>>;
 }
 
@@ -42,7 +42,7 @@ export const Context = React.createContext<IContext>({
 
 export const ContextProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string>("");
-  const [user, setUser] = useState<UserInformationResponseDto | undefined>();
+  const [user, setUser] = useState<UserInfoResponseDto | undefined>();
   const [error, setError] = useState<Error>();
   const [isTokenReady, setIsTokenReady] = useState(false);
   const auth0 = useAuth0();
@@ -132,14 +132,14 @@ const ApiProvider = ({ children }: { children: ReactNode }) => {
 // Component that fetches and sets user data using Suspense
 const UserDataFetcher = ({ children }: { children: ReactNode }) => {
   const { setUser } = useContext(Context);
-  const { user: userData } = useCurrentUser(); // This will suspend until user data is loaded
+  const { data } = useUserProfileuserinfo(); // This will suspend until user data is loaded
 
   // Set user data in context once it's loaded
   useEffect(() => {
-    if (userData && setUser) {
-      setUser(userData);
+    if (data && setUser) {
+      setUser(data);
     }
-  }, [userData, setUser]);
+  }, [data, setUser]);
 
   return <>{children}</>;
 };

@@ -1,4 +1,4 @@
-import { Role } from "@/lib/api/interfaces/utils";
+import { UserInfoUserRole } from "@/lib/api/interfaces/user-profile.interface";
 import { cn } from "@/lib/utils/cn";
 import { hasRolePermission } from "@/lib/utils/role-manager";
 import {
@@ -58,7 +58,7 @@ const AppSidebar = () => {
   const sidebarItems = [];
 
   sidebarItems.push(sidebarHome);
-  if (hasRolePermission(user.userRole, Role.Admin)) {
+  if (hasRolePermission(user.userRole, UserInfoUserRole.ADMIN)) {
     sidebarItems.push(sidebarAdmin);
   }
 

@@ -1,7 +1,7 @@
 // src/Routes.tsx
-import { Role } from "@/lib/api/interfaces/utils";
 import { ProtectedRoute } from "@/util-components/root/protected-route";
 import { useRoutes } from "react-router-dom";
+import { UserInfoUserRole } from "./lib/api/interfaces/user-profile.interface";
 import Admin from "./page-components/admin/page";
 import Home from "./page-components/home/page";
 import Logout from "./page-components/register/logout/page";
@@ -35,7 +35,7 @@ const Routes = () => {
     {
       path: "/",
       element: (
-        <ProtectedRoute minRole={Role.User}>
+        <ProtectedRoute minRole={UserInfoUserRole.USER}>
           <Home />
         </ProtectedRoute>
       ),
@@ -43,7 +43,7 @@ const Routes = () => {
     {
       path: "/settings",
       element: (
-        <ProtectedRoute minRole={Role.User}>
+        <ProtectedRoute minRole={UserInfoUserRole.USER}>
           <Settings />
         </ProtectedRoute>
       ),
@@ -51,7 +51,7 @@ const Routes = () => {
     {
       path: "/admin",
       element: (
-        <ProtectedRoute minRole={Role.Admin}>
+        <ProtectedRoute minRole={UserInfoUserRole.ADMIN}>
           <Admin />
         </ProtectedRoute>
       ),
@@ -59,7 +59,7 @@ const Routes = () => {
     {
       path: "/sign-out",
       element: (
-        <ProtectedRoute minRole={Role.User}>
+        <ProtectedRoute minRole={UserInfoUserRole.USER}>
           <Logout />
         </ProtectedRoute>
       ),
