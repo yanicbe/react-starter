@@ -19,7 +19,7 @@ export function useCurrentUser() {
 
   const query = useSuspenseQuery({
     queryKey: userKeys.info(),
-    queryFn: () => apiRequest<UserInformationResponseDto>('v1.0/user-profile/userinfo'),
+    queryFn: () => apiRequest<UserInformationResponseDto>('/user-profile/userinfo'),
   });
 
   return {

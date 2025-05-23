@@ -16,7 +16,7 @@ export const queryClient = new QueryClient({
 });
 
 // Base API URL
-export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+export const API_URL = process.env.REACT_APP_API || 'http://localhost:3001/v1.0';
 
 // Error type definition
 export interface ApiError {
