@@ -1,24 +1,21 @@
 import { queryClient } from "@/lib/api/client";
-import { UserInformationResponseDto } from "@/lib/api/interfaces/user.interface";
-import { useCurrentUser } from "@/lib/api/requests/user.requests";
+import { UserInfoResponseDto } from "@/lib/api/interfaces/user-profile.interface";
+import { useUserProfileuserinfo } from "@/lib/api/requests/user-profile.requests";
 import ErrorModal from "@/ui-components/ui/error-modal";
 import { BlueLoadingFallback, SuspenseWrapper } from "@/ui-components/ui/suspense-wrapper";
 import { useAuth0 } from "@auth0/auth0-react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import React, { Dispatch, ReactNode, SetStateAction, useContext, useEffect, useState } from "react";
+import { ErrorEntity } from "../../lib/utils/error-entities";
 
 interface IContext {
   accessToken: string;
-  user?: UserInformationResponseDto;
+  user?: UserInfoResponseDto;
   error?: Error;
   setAccessToken?: Dispatch<SetStateAction<string>>;
-  setUser?: Dispatch<SetStateAction<UserInformationResponseDto | undefined>>;
+  setUser?: Dispatch<SetStateAction<UserInfoResponseDto | undefined>>;
   setError?: Dispatch<SetStateAction<Error | undefined>>;
-}
-
-export enum ErrorEntity {
-  UserForbidden = "UserForbidden",
 }
 
 export interface Error {
@@ -42,7 +39,7 @@ export const Context = React.createContext<IContext>({
 
 export const ContextProvider = ({ children }: { children: ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string>("");
-  const [user, setUser] = useState<UserInformationResponseDto | undefined>();
+  const [user, setUser] = useState<UserInfoResponseDto | undefined>();
   const [error, setError] = useState<Error>();
   const [isTokenReady, setIsTokenReady] = useState(false);
   const auth0 = useAuth0();
@@ -84,12 +81,12 @@ export const ContextProvider = ({ children }: { children: ReactNode }) => {
 
   // Show loading while Auth0 is initializing
   if (auth0.isLoading) {
-    return <BlueLoadingFallback text="Authenticating..." />;
+    return <BlueLoadingFallback text="Authentifizierung..." />;
   }
 
   // Show loading while getting access token
   if (auth0.isAuthenticated && !isTokenReady) {
-    return <BlueLoadingFallback text="Authenticating..." />;
+    return <BlueLoadingFallback text="Authentifizierung..." />;
   }
 
   const value: IContext = {
@@ -132,7 +129,7 @@ const ApiProvider = ({ children }: { children: ReactNode }) => {
 // Component that fetches and sets user data using Suspense
 const UserDataFetcher = ({ children }: { children: ReactNode }) => {
   const { setUser } = useContext(Context);
-  const { user: userData } = useCurrentUser(); // This will suspend until user data is loaded
+  const { data: userData } = useUserProfileuserinfo(); // This will suspend until user data is loaded
 
   // Set user data in context once it's loaded
   useEffect(() => {
@@ -159,7 +156,7 @@ const BaseApiCall = ({ children }: { children: ReactNode }) => {
 
   // Use Suspense to handle loading state while fetching user data
   return (
-    <SuspenseWrapper type="green" text="Loading your profile...">
+    <SuspenseWrapper type="green" text="Lädt dein Profil...">
       <UserDataFetcher>{children}</UserDataFetcher>
     </SuspenseWrapper>
   );

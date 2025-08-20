@@ -1,15 +1,21 @@
 import { Search } from "lucide-react";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-const SearchInput = ({ setSearchText }: { setSearchText: Dispatch<SetStateAction<string>> }) => {
+const SearchInput = ({
+  setSearchText,
+  searchText,
+}: {
+  setSearchText: (text?: string) => void;
+  searchText?: string;
+}) => {
   const [gotAnInput, setGotAnInput] = useState(false);
-  const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState(searchText || "");
   const [showText, setShowText] = useState(false);
 
   useEffect(() => {
     if (inputText.length <= 3) {
       if (inputText.length === 0) {
-        setSearchText("");
+        setSearchText(undefined);
         setShowText(false);
       } else {
         const timer = setTimeout(() => {
@@ -26,10 +32,10 @@ const SearchInput = ({ setSearchText }: { setSearchText: Dispatch<SetStateAction
     setShowText(false);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gotAnInput, setSearchText]);
+  }, [gotAnInput]);
 
   return (
-    <div className="">
+    <div className="min-w-40">
       <div className="flex gap-3 bg-white items-center rounded-2xl px-3 py-2 shadow-sm text-[#888] text-sm">
         <Search />
         <input
@@ -39,6 +45,7 @@ const SearchInput = ({ setSearchText }: { setSearchText: Dispatch<SetStateAction
             setGotAnInput((prev) => !prev);
             setInputText(e.target.value);
           }}
+          value={inputText}
         />
       </div>
       {showText && <p className="text-sm absolute text-red-500">Gib mindestens 4 Zeichen ein</p>}

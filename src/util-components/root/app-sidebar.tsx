@@ -1,4 +1,4 @@
-import { Role } from "@/lib/api/interfaces/utils";
+import { UserInfoUserRole } from "@/lib/api/interfaces/user-profile.interface";
 import { cn } from "@/lib/utils/cn";
 import { hasRolePermission } from "@/lib/utils/role-manager";
 import {
@@ -20,6 +20,13 @@ import { ChevronUp, Home, LogOut, Settings, User2, Wrench } from "lucide-react";
 import { useContext } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Context } from "./context";
+
+type SidebarItem = {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  displayEnd?: boolean;
+};
 
 const sidebarHome = {
   title: "Home",
@@ -55,10 +62,10 @@ const AppSidebar = () => {
     return null;
   }
 
-  const sidebarItems = [];
+  const sidebarItems: SidebarItem[] = [];
 
   sidebarItems.push(sidebarHome);
-  if (hasRolePermission(user.userRole, Role.Admin)) {
+  if (hasRolePermission(user.userRole, UserInfoUserRole.ADMIN)) {
     sidebarItems.push(sidebarAdmin);
   }
 
@@ -72,34 +79,65 @@ const AppSidebar = () => {
       <SidebarHeader className="py-6">
         <div className="relative px-4">
           <Link to="/">
-            <img src="../logo-black.png" alt="logo" className="h-20" />
+            <img src="../logo.png" alt="logo" className="h-auto w-full" />
           </Link>
         </div>
       </SidebarHeader>
       <SidebarContent className="px-2 py-4">
-        <SidebarMenu className="space-y-1">
-          {sidebarItems.map((item) => {
-            const isActive = location.pathname === item.url;
-            return (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild>
-                  <Link
-                    to={item.url}
-                    className={cn(
-                      "transition-colors",
-                      isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
-                    )}
-                  >
-                    <item.icon className={cn(isActive ? "text-primary" : "text-muted-foreground")} />
-                    <span>{item.title}</span>
-                    {isActive && (
-                      <div className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-md bg-primary" />
-                    )}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
+        <SidebarMenu className="space-y-1 h-full">
+          {sidebarItems
+            .filter((item) => !item.displayEnd)
+            .map((item) => {
+              const isActive = item.url === "/" ? location.pathname === item.url : location.pathname.includes(item.url);
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      to={item.url}
+                      className={cn(
+                        "transition-colors",
+                        isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
+                      )}
+                    >
+                      <item.icon className={cn(isActive ? "text-primary" : "text-muted-foreground")} />
+                      <span>{item.title}</span>
+                      {isActive && (
+                        <div className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-md bg-primary" />
+                      )}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+
+          {sidebarItems.filter((item) => item.displayEnd).length > 0 && (
+            <div className="border-t border-border my-2 h-full" />
+          )}
+
+          {sidebarItems
+            .filter((item) => item.displayEnd)
+            .map((item) => {
+              const isActive = item.url === "/" ? location.pathname === item.url : location.pathname.includes(item.url);
+              return (
+                <SidebarMenuItem key={item.title} className="justify-end">
+                  <SidebarMenuButton asChild>
+                    <Link
+                      to={item.url}
+                      className={cn(
+                        "transition-colors",
+                        isActive ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
+                      )}
+                    >
+                      <item.icon className={cn(isActive ? "text-primary" : "text-muted-foreground")} />
+                      <span>{item.title}</span>
+                      {isActive && (
+                        <div className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-md bg-primary" />
+                      )}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="py-4 px-2 border-t">
@@ -109,7 +147,10 @@ const AppSidebar = () => {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton className="hover:bg-muted transition-colors">
                   <User2 className="text-muted-foreground" />
-                  <span className="font-medium">Username</span>
+                  <span className="font-medium truncate max-w-[150px]">
+                    {/* {user.firstName} {user.lastName} */}
+                    USERNAME
+                  </span>
                   <ChevronUp className="ml-auto text-muted-foreground" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>

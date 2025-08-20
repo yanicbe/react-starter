@@ -15,7 +15,7 @@ const RootWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <ContextProvider>
           <SidebarProvider>
             <AppSidebar />
-            <main className="min-h-screen w-full p-8">{children}</main>
+            <main className="min-h-screen w-full">{children}</main>
           </SidebarProvider>
         </ContextProvider>
       </AuthProvider>

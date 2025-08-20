@@ -2,7 +2,7 @@
 import { ReactNode, Suspense } from "react";
 
 // blue loading
-export const BlueLoadingFallback = ({ text = "Loading..." }: { text?: string }) => (
+export const BlueLoadingFallback = ({ text = "Lädt..." }: { text?: string }) => (
   <div className="flex items-center justify-center h-screen">
     <div className="text-center">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
@@ -12,7 +12,7 @@ export const BlueLoadingFallback = ({ text = "Loading..." }: { text?: string }) 
 );
 
 // green loading
-export const GreenLoadingFallback = ({ text = "Loading..." }: { text?: string }) => (
+export const GreenLoadingFallback = ({ text = "Lädt..." }: { text?: string }) => (
   <div className="flex items-center justify-center h-screen">
     <div className="text-center">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mx-auto"></div>
@@ -31,7 +31,7 @@ interface SuspenseWrapperProps {
 /**
  * A reusable Suspense component with a default loading fallback
  */
-export const SuspenseWrapper = ({ children, fallback, type = "blue", text = "Loading..." }: SuspenseWrapperProps) => {
+export const SuspenseWrapper = ({ children, fallback, type = "blue", text = "Lädt..." }: SuspenseWrapperProps) => {
   const LoadingFallback = type === "blue" ? BlueLoadingFallback : GreenLoadingFallback;
   return <Suspense fallback={fallback || <LoadingFallback text={text} />}>{children ?? <></>}</Suspense>;
 };

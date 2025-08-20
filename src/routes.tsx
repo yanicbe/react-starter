@@ -1,5 +1,5 @@
 // src/Routes.tsx
-import { Role } from "@/lib/api/interfaces/utils";
+import { UserInfoUserRole } from "@/lib/api/interfaces/user-profile.interface";
 import { ProtectedRoute } from "@/util-components/root/protected-route";
 import { useRoutes } from "react-router-dom";
 import Admin from "./page-components/admin/page";
@@ -10,6 +10,7 @@ import ResetPassword from "./page-components/register/reset-password/page";
 import Settings from "./page-components/settings/page";
 import MailVerification from "./page-components/verification/page";
 import PageNotFound from "./util-components/error/page-not-found";
+import InternalCustomerWrapper from "./util-components/root/internal-customer-wrapper";
 
 const Routes = () => {
   const routes = useRoutes([
@@ -35,15 +36,15 @@ const Routes = () => {
     {
       path: "/",
       element: (
-        <ProtectedRoute minRole={Role.User}>
-          <Home />
+        <ProtectedRoute minRole={UserInfoUserRole.USER}>
+          <InternalCustomerWrapper customerComponent={<Home />} internalComponent={<Home />} />
         </ProtectedRoute>
       ),
     },
     {
       path: "/settings",
       element: (
-        <ProtectedRoute minRole={Role.User}>
+        <ProtectedRoute minRole={UserInfoUserRole.USER}>
           <Settings />
         </ProtectedRoute>
       ),
@@ -51,7 +52,7 @@ const Routes = () => {
     {
       path: "/admin",
       element: (
-        <ProtectedRoute minRole={Role.Admin}>
+        <ProtectedRoute minRole={UserInfoUserRole.ADMIN}>
           <Admin />
         </ProtectedRoute>
       ),
@@ -59,7 +60,7 @@ const Routes = () => {
     {
       path: "/sign-out",
       element: (
-        <ProtectedRoute minRole={Role.User}>
+        <ProtectedRoute minRole={UserInfoUserRole.USER}>
           <Logout />
         </ProtectedRoute>
       ),

@@ -1,4 +1,5 @@
-import { ErrorEntity, Error as ErrorI } from "@/util-components/root/context";
+import { ErrorEntity } from "@/lib/utils/error-entities";
+import { Error as ErrorI } from "@/util-components/root/context";
 
 export const getErrorMessage = async (res: Response) => {
   let errorMessage = "";
@@ -24,7 +25,7 @@ export const getErrorMessage = async (res: Response) => {
   } else if (res.status === 409) {
     errorMessage = "409 - Scheinbar gab es einen Konflikt. Bitte versuche es später nochmals oder kontaktiere den Support.";
   } else if (res.status === 403) {
-    errorMessage = "403 - Du scheinst nicht die nötigen Rechte zu haben. Bitte kontaktiere den Support oder Ihren Organisationsadministrator.";
+    errorMessage = "403 - Du scheinst nicht die nötigen Rechte zu haben. Bitte kontaktiere den Support oder Ihren Vereinsadministrator.";
   } else if (res.status === 500) {
     errorMessage = "500 - Es ist ein Fehler aufgetreten, der nicht auftreten soll. Bitte schreibe dem Support. - Zeitpunkt: " + new Date().toLocaleString();
   } else if (res.status === 404) {
@@ -33,10 +34,20 @@ export const getErrorMessage = async (res: Response) => {
     errorMessage = `${res.status} - Es ist ein Fehler aufgetreten. Bitte versuche es später nochmals oder kontaktiere den Support`;
   }
 
-  if (error.error === ErrorEntity.UserForbidden) {
+  if (error.error === ErrorEntity.NoUserFoundForbidden) {
     errorLocation = "/";
-    error.entity = ErrorEntity.UserForbidden;
+    error.entity = ErrorEntity.NoUserFoundForbidden;
     redirect = true;
+  } else if (error.error === ErrorEntity.EMailNotVerifiedForbidden) {
+    errorLocation = "/verification/mail";
+    error.entity = ErrorEntity.EMailNotVerifiedForbidden;
+    redirect = true;
+  } else if (error.error === ErrorEntity.NoOrganizationForbidden) {
+    errorLocation = "/vereine/create";
+    error.entity = ErrorEntity.NoOrganizationForbidden;
+    redirect = true;
+  } else if (error.message === "Team is getting used") {
+    errorMessage = "Das Team hat bereits Spieler zugewiesen. Entferne alle zugewiesenen Spieler und versuche es erneut.";
   }
 
   const parsedError: ErrorI = {

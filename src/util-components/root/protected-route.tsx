@@ -1,5 +1,5 @@
 // src/components/ProtectedRoute.tsx
-import { Role } from "@/lib/api/interfaces/utils";
+import { UserInfoUserRole, UserInfoUserType } from "@/lib/api/interfaces/user-profile.interface";
 import { hasAnyRole, hasRolePermission, parseRole } from "@/lib/utils/role-manager";
 import { BlueLoadingFallback } from "@/ui-components/ui/suspense-wrapper";
 import React, { ReactNode, useContext } from "react";
@@ -8,9 +8,14 @@ import { Context } from "./context";
 interface ProtectedRouteProps {
   children: ReactNode;
   // Option 1: Single minimum required role (hierarchical)
-  minRole?: Role;
+  minRole?: UserInfoUserRole;
   // Option 2: Array of specific allowed roles (exact match)
-  allowedRoles?: Role[];
+  allowedRoles?: UserInfoUserRole[];
+  // Option 3: object for min role for internal and customer
+  minRoleMap?: {
+    internal: UserInfoUserRole;
+    customer: UserInfoUserRole;
+  };
   // Custom fallback component for unauthorized access
   fallback?: ReactNode;
   // Redirect path for unauthorized users
@@ -18,13 +23,15 @@ interface ProtectedRouteProps {
 }
 
 // Default unauthorized access component
-const UnauthorizedAccess = () => (
+export const UnauthorizedAccess = () => (
   <div className="flex items-center justify-center h-screen">
     <div className="text-center p-8 bg-red-50 rounded-lg border border-red-200">
       <div className="text-red-600 text-6xl mb-4">🚫</div>
-      <h1 className="text-2xl font-bold text-red-800 mb-2">Access Denied</h1>
-      <p className="text-red-600 mb-4">You don't have permission to access this page.</p>
-      <p className="text-sm text-red-500">Please contact your administrator if you believe this is an error.</p>
+      <h1 className="text-2xl font-bold text-red-800 mb-2">Zugriff verweigert</h1>
+      <p className="text-red-600 mb-4">Du hast keine Berechtigung, um auf diese Seite zuzugreifen.</p>
+      <p className="text-sm text-red-500">
+        Bitte kontaktiere deinen Administrator, wenn du glaubst, dass dies ein Fehler ist.
+      </p>
     </div>
   </div>
 );
@@ -33,13 +40,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   minRole,
   allowedRoles,
+  minRoleMap,
   fallback = <UnauthorizedAccess />,
   redirectTo,
 }) => {
   const { user } = useContext(Context);
 
   if (!user) {
-    return <BlueLoadingFallback text="Loading user..." />;
+    return <BlueLoadingFallback text="Lädt Nutzer..." />;
   }
 
   // Parse user role from API response
@@ -60,6 +68,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   } else if (allowedRoles && allowedRoles.length > 0) {
     // Specific roles check
     hasAccess = hasAnyRole(userRole, allowedRoles);
+  } else if (minRoleMap) {
+    if (user.userType === UserInfoUserType.INTERNAL) {
+      hasAccess = hasRolePermission(userRole, minRoleMap.internal);
+    } else if (user.userType === UserInfoUserType.CUSTOMER) {
+      hasAccess = hasRolePermission(userRole, minRoleMap.customer);
+    }
   } else {
     // If no role restrictions specified, allow access
     hasAccess = true;
@@ -77,21 +91,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // User has access, render children
-  return <>{children}</>;
+  return <div className="p-8 w-full h-full">{children}</div>;
 };
 
 // Convenience components for common role checks
 export const AdminOnlyRoute: React.FC<{ children: ReactNode; fallback?: ReactNode }> = ({ children, fallback }) => (
-  <ProtectedRoute minRole={Role.Admin} fallback={fallback}>
-    {children}
-  </ProtectedRoute>
-);
-
-export const SuperAdminOnlyRoute: React.FC<{ children: ReactNode; fallback?: ReactNode }> = ({
-  children,
-  fallback,
-}) => (
-  <ProtectedRoute minRole={Role.SuperAdmin} fallback={fallback}>
+  <ProtectedRoute minRole={UserInfoUserRole.ADMIN} fallback={fallback}>
     {children}
   </ProtectedRoute>
 );

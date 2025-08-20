@@ -8,6 +8,8 @@ import * as path from 'path';
 const SWAGGER_URL = 'http://localhost:3001/api/swagger-json';
 const INTERFACES_OUTPUT_DIR = path.resolve(__dirname, '../src/lib/api/interfaces');
 const REQUESTS_OUTPUT_DIR = path.resolve(__dirname, '../src/lib/api/requests');
+const ERROR_ENTITIES_FILE = path.resolve(__dirname, '../src/lib/utils/error-entities.ts');
+const CREATION_ENTITIES_KEYS_FILE = path.resolve(__dirname, '../src/lib/api/creation-entities-keys.ts');
 
 // Swagger schema types
 interface OpenAPISchema {
@@ -65,6 +67,9 @@ interface OperationObject {
       'application/json'?: {
         schema?: SchemaObject;
       };
+      'multipart/form-data'?: {
+        schema?: SchemaObject;
+      };
     };
   };
   responses?: Record<string, {
@@ -85,6 +90,7 @@ interface EndpointInfo {
   responseSchema?: string;
   pathParams: string[];
   queryParams: string[];
+  isFormData?: boolean;
 }
 
 // Ensure output directories exist
@@ -93,6 +99,18 @@ interface EndpointInfo {
     fs.mkdirSync(dir, { recursive: true });
   }
 });
+
+// Ensure error entities directory exists
+const errorEntitiesDir = path.dirname(ERROR_ENTITIES_FILE);
+if (!fs.existsSync(errorEntitiesDir)) {
+  fs.mkdirSync(errorEntitiesDir, { recursive: true });
+}
+
+// Ensure creation entities keys directory exists
+const creationEntitiesKeysDir = path.dirname(CREATION_ENTITIES_KEYS_FILE);
+if (!fs.existsSync(creationEntitiesKeysDir)) {
+  fs.mkdirSync(creationEntitiesKeysDir, { recursive: true });
+}
 
 // Helper to convert enum value to valid TypeScript identifier
 function convertToValidEnumKey(value: string): string {
@@ -135,6 +153,10 @@ function convertType(schema: SchemaObject | undefined, propertyName?: string, pa
   // Handle references
   if (schema.$ref) {
     const refName = schema.$ref.split('/').pop();
+    // Convert ObjectId to string
+    if (refName === 'ObjectId') {
+      return 'string';
+    }
     return refName || 'any';
   }
 
@@ -146,6 +168,10 @@ function convertType(schema: SchemaObject | undefined, propertyName?: string, pa
       // If first item is a reference, use that
       if (allOfSchemas[0].$ref) {
         const refName = allOfSchemas[0].$ref.split('/').pop();
+        // Convert ObjectId to string
+        if (refName === 'ObjectId') {
+          return 'string';
+        }
         return refName || 'any';
       }
       // Otherwise, try to convert the first schema
@@ -195,6 +221,10 @@ function convertType(schema: SchemaObject | undefined, propertyName?: string, pa
     case 'number':
       return 'number';
     case 'string':
+      // Handle binary format for file uploads
+      if (schema.format === 'binary') {
+        return 'File';
+      }
       return 'string';
     case 'boolean':
       return 'boolean';
@@ -258,7 +288,7 @@ function generateParameterInterface(operation: OperationObject, hookName: string
     return propertyWithDoc;
   }).join('\n');
 
-  const interfaceContent = `interface ${interfaceName} {\n${properties}\n}`;
+  const interfaceContent = `export interface ${interfaceName} {\n${properties}\n}`;
 
   return { interfaceName, interfaceContent };
 }
@@ -343,7 +373,27 @@ function generateHookName(path: string, method: string, operation: OperationObje
 
   // Use operationId if available, but clean it up
   if (operation.operationId) {
-    const cleanOperationId = operation.operationId.replace(/Controller_/, '');
+    let cleanOperationId = operation.operationId.replace(/Controller_/, '');
+
+    // Remove version suffixes like _v1.0, _v2.0, etc.
+    cleanOperationId = cleanOperationId.replace(/_v\d+\.\d+$/, '');
+
+    // Convert to proper camelCase - capitalize words after underscores and remove underscores
+    cleanOperationId = cleanOperationId.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+
+    // Additional camelCase improvements for common words
+    cleanOperationId = cleanOperationId
+      .replace(/create/g, 'Create')
+      .replace(/creation/g, 'Creation')
+      .replace(/update/g, 'Update')
+      .replace(/delete/g, 'Delete')
+      .replace(/get/g, 'Get')
+      .replace(/find/g, 'Find')
+      .replace(/list/g, 'List')
+      .replace(/entities/g, 'Entities')
+      .replace(/entity/g, 'Entity');
+
+    // Ensure first letter after 'use' is uppercase
     return `use${cleanOperationId.charAt(0).toUpperCase()}${cleanOperationId.slice(1)}`;
   }
 
@@ -371,18 +421,42 @@ function generateHookName(path: string, method: string, operation: OperationObje
   }
 }
 
+// Check if an endpoint is a creation entities endpoint
+function isCreationEntitiesEndpoint(path: string): boolean {
+  return path.endsWith('/creation-entities');
+}
+
 // Generate query key for an endpoint
 function generateQueryKey(resource: string, path: string, method: string): string {
-  const segments = path.split('/').filter(Boolean).slice(2); // Remove version and resource
-  const keySegments = segments.map(segment =>
-    segment.startsWith('{') ? 'detail' : segment.replace(/-/g, '_')
-  );
-
-  if (keySegments.length === 0) {
-    return method === 'get' ? 'list' : 'mutation';
+  // Check if this is a creation entities endpoint
+  if (isCreationEntitiesEndpoint(path)) {
+    return 'creation_entities';
   }
 
-  return keySegments.join('_');
+  // The path here already has the version prefix removed, so it looks like "/user-profile/userinfo"
+  // We need to remove the resource part and get the remaining segments
+  const resourcePath = `/${resource}`;
+  const remainingPath = path.startsWith(resourcePath) ? path.slice(resourcePath.length) : path;
+  const segments = remainingPath.split('/').filter(Boolean);
+
+  // If no segments (root resource endpoint)
+  if (segments.length === 0) {
+    return method.toLowerCase() === 'get' ? 'profile' : 'mutation';
+  }
+
+  // Create a key based on the path segments
+  const keySegments = segments.map(segment => {
+    if (segment.startsWith('{')) {
+      return 'detail';
+    }
+    return segment.replace(/-/g, '_');
+  });
+
+  // Join segments to create unique key
+  const pathKey = keySegments.join('_');
+
+  // Return the path-based key for GET requests, or add mutation suffix for others
+  return method.toLowerCase() === 'get' ? pathKey : `${pathKey}_mutation`;
 }
 
 // Parse endpoints from paths
@@ -404,8 +478,24 @@ function parseEndpoints(paths: Record<string, PathObject>, schemas: Record<strin
 
       // Extract request schema
       let requestSchema: string | undefined;
-      if (operation.requestBody?.content?.['application/json']?.schema) {
-        requestSchema = getSchemaNameFromRef(operation.requestBody.content['application/json'].schema.$ref);
+      let isFormData = false;
+
+      if (operation.requestBody?.content) {
+        // Check for JSON content
+        if (operation.requestBody.content['application/json']?.schema) {
+          requestSchema = getSchemaNameFromRef(operation.requestBody.content['application/json'].schema.$ref);
+        }
+        // Check for FormData content
+        else if (operation.requestBody.content['multipart/form-data']?.schema) {
+          isFormData = true;
+          // For FormData, we'll generate an interface for the form data structure
+          const formDataSchema = operation.requestBody.content['multipart/form-data'].schema;
+          if (formDataSchema && formDataSchema.properties) {
+            // Generate a synthetic schema name for the form data
+            const hookName = generateHookName(path.replace(/^\/v\d+\.\d+/, ''), method, operation);
+            requestSchema = `${hookName.charAt(0).toUpperCase()}${hookName.slice(3)}FormData`; // Remove 'use' prefix
+          }
+        }
       }
 
       // Extract response schema (from 200 response)
@@ -426,7 +516,8 @@ function parseEndpoints(paths: Record<string, PathObject>, schemas: Record<strin
         requestSchema,
         responseSchema,
         pathParams,
-        queryParams
+        queryParams,
+        isFormData
       });
     });
   });
@@ -434,16 +525,61 @@ function parseEndpoints(paths: Record<string, PathObject>, schemas: Record<strin
   return endpointsByResource;
 }
 
-// Generate request hooks file for a resource
+// Add this helper function before generateRequestHooks
+function findUsedInterfaces(endpoints: EndpointInfo[]): Set<string> {
+  const usedInterfaces = new Set<string>();
+
+  endpoints.forEach(endpoint => {
+    // Add request schema if it exists
+    if (endpoint.requestSchema) {
+      usedInterfaces.add(endpoint.requestSchema);
+    }
+
+    // Add response schema if it exists
+    if (endpoint.responseSchema) {
+      usedInterfaces.add(endpoint.responseSchema);
+    }
+
+    // Add parameter interfaces if they exist
+    if (endpoint.operation.parameters) {
+      endpoint.operation.parameters.forEach(param => {
+        if (param.schema?.$ref) {
+          const refName = getSchemaNameFromRef(param.schema.$ref);
+          if (refName) {
+            usedInterfaces.add(refName);
+          }
+        }
+      });
+    }
+  });
+
+  return usedInterfaces;
+}
+
+// Modify the generateRequestHooks function
 function generateRequestHooks(resource: string, endpoints: EndpointInfo[], resourceSchemas: Set<string>): string {
   const dashedResource = resource.includes('-') ? resource : resource.replace(/([A-Z])/g, '-$1').toLowerCase();
 
+  // Check if any endpoint has query parameters
+  const hasAnyQueryParams = endpoints.some(endpoint => endpoint.queryParams.length > 0);
+
   let content = `// Generated from Swagger on ${new Date().toISOString()}\n`;
-  content += `import { useSuspenseQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';\n`;
+  content += `import { useSuspenseQuery, useQuery, useMutation, useQueryClient, UseSuspenseQueryOptions, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';\n`;
   content += `import { useApiClient } from '../client';\n`;
 
-  // Add imports for interfaces
-  const interfaceImports = Array.from(resourceSchemas).filter(Boolean);
+  // Always import creation entities keys for invalidation
+  content += `import { creationEntitiesKeys } from '../creation-entities-keys';\n`;
+
+  // Only import formatSearchQuery if there are endpoints with query parameters
+  if (hasAnyQueryParams) {
+    content += `import { formatSearchQuery } from '../../utils/format-search-query';\n`;
+  }
+
+  // Find actually used interfaces
+  const usedInterfaces = findUsedInterfaces(endpoints);
+
+  // Add imports only for interfaces that are actually used
+  const interfaceImports = Array.from(usedInterfaces).filter(Boolean);
   if (interfaceImports.length > 0) {
     content += `import {\n`;
     content += interfaceImports.map(name => `  ${name}`).join(',\n');
@@ -457,23 +593,30 @@ function generateRequestHooks(resource: string, endpoints: EndpointInfo[], resou
   content += `export const ${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys = {\n`;
   content += `  all: ['${resource}'] as const,\n`;
 
-  // Generate query keys
-  const uniqueKeys = new Set<string>();
+  // Generate query keys based on actual endpoints
+  const keyMap = new Map<string, { isQuery: boolean; hasParams: boolean; endpoint: EndpointInfo }>();
   endpoints.forEach(endpoint => {
     const keyName = generateQueryKey(resource, endpoint.path, endpoint.method);
-    uniqueKeys.add(keyName);
+    const isQuery = endpoint.method === 'GET';
+    const hasParams = endpoint.pathParams.length > 0 || endpoint.queryParams.length > 0;
+
+    keyMap.set(keyName, { isQuery, hasParams, endpoint });
   });
 
-  uniqueKeys.forEach(key => {
+  keyMap.forEach(({ isQuery, hasParams, endpoint }, key) => {
     const safeKey = key.replace(/-/g, '_');
-    if (key === 'list') {
-      content += `  lists: () => [...${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.all, 'list'] as const,\n`;
-      content += `  list: (filters?: any) => [...${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.lists(), filters] as const,\n`;
+    if (key === 'profile') {
+      content += `  profile: () => [...${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.all, 'profile'] as const,\n`;
     } else if (key === 'detail') {
       content += `  details: () => [...${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.all, 'detail'] as const,\n`;
       content += `  detail: (id: string) => [...${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.details(), id] as const,\n`;
     } else {
-      content += `  '${safeKey}': (params?: any) => [...${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.all, '${safeKey}', params] as const,\n`;
+      // Create specific key functions for each endpoint
+      if (hasParams) {
+        content += `  ${safeKey}: (params?: any) => [...${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.all, '${safeKey}', params] as const,\n`;
+      } else {
+        content += `  ${safeKey}: () => [...${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.all, '${safeKey}'] as const,\n`;
+      }
     }
   });
 
@@ -485,7 +628,7 @@ function generateRequestHooks(resource: string, endpoints: EndpointInfo[], resou
     const isQuery = endpoint.method === 'GET';
     const hasPathParams = endpoint.pathParams.length > 0;
     const hasQueryParams = endpoint.queryParams.length > 0;
-    const hasRequestBody = endpoint.requestSchema;
+    const hasRequestBody = endpoint.requestSchema || endpoint.isFormData;
 
     // Generate parameter interface if needed
     let parameterInterface: { interfaceName: string; interfaceContent: string } | null = null;
@@ -494,6 +637,16 @@ function generateRequestHooks(resource: string, endpoints: EndpointInfo[], resou
       if (parameterInterface) {
         parameterInterfaces.push(parameterInterface.interfaceContent);
       }
+    }
+
+    // FormData interfaces are now generated in the interfaces file, not locally
+    let formDataInterface: { interfaceName: string; interfaceContent: string } | null = null;
+    if (endpoint.isFormData && hasRequestBody) {
+      // Generate interface name to match what's in the interfaces file
+      formDataInterface = {
+        interfaceName: `${hookName.charAt(0).toUpperCase()}${hookName.slice(3)}FormData`,
+        interfaceContent: '' // Not used since it's generated in interfaces file
+      };
     }
 
     // Add JSDoc comment
@@ -528,6 +681,11 @@ function generateRequestHooks(resource: string, endpoints: EndpointInfo[], resou
         params = params ? `${params}, ${queryType}` : queryType;
       }
 
+      // Add options parameter for customizing query behavior
+      const optionsType = `Omit<UseSuspenseQueryOptions<${responseType}>, 'queryKey' | 'queryFn'>`;
+      const optionsParam = `options?: ${optionsType}`;
+      params = params ? `${params}, ${optionsParam}` : optionsParam;
+
       content += `export function ${hookName}(${params}) {\n`;
       content += `  const { apiRequest } = useApiClient();\n\n`;
 
@@ -535,7 +693,7 @@ function generateRequestHooks(resource: string, endpoints: EndpointInfo[], resou
       let queryFn;
       if (hasQueryParams) {
         queryFn = `() => {
-      const queryString = params ? \`?\${new URLSearchParams(params as any).toString()}\` : '';
+      const queryString = formatSearchQuery(params);
       return apiRequest<${responseType}>(\`${pathReplacement}\${queryString}\`);
     }`;
       } else {
@@ -545,22 +703,39 @@ function generateRequestHooks(resource: string, endpoints: EndpointInfo[], resou
       // Determine query key
       let queryKey;
       const safeKeyName = keyName.replace(/-/g, '_');
-      if (keyName === 'list') {
-        queryKey = hasQueryParams ?
-          `${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.list(params)` :
-          `${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.lists()`;
+
+      // Use creation entities key for creation entities endpoints
+      if (keyName === 'creation_entities') {
+        queryKey = `creationEntitiesKeys.list()`;
+      } else if (keyName === 'profile') {
+        // Always include params in profile query key to invalidate cache when params change
+        if (hasQueryParams) {
+          queryKey = `[...${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.profile(), ...creationEntitiesKeys.list(), params]`;
+        } else {
+          queryKey = `[...${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.profile(), ...creationEntitiesKeys.list()]`;
+        }
       } else if (keyName === 'detail' && hasPathParams) {
-        queryKey = `${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.detail(${endpoint.pathParams[0]})`;
+        queryKey = `[...${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.detail(${endpoint.pathParams[0]}), ...creationEntitiesKeys.list()]`;
       } else {
-        const keyParams = hasPathParams || hasQueryParams ?
-          `{ ${hasPathParams ? endpoint.pathParams.join(', ') : ''}${hasPathParams && hasQueryParams ? ', ' : ''}${hasQueryParams ? '...params' : ''} }` :
-          'undefined';
-        queryKey = `${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys['${safeKeyName}'](${keyParams})`;
+        // Use the specific key function for this endpoint
+        if (hasPathParams || hasQueryParams) {
+          const keyParams = hasPathParams || hasQueryParams ?
+            `{ ${hasPathParams ? endpoint.pathParams.join(', ') : ''}${hasPathParams && hasQueryParams ? ', ' : ''}${hasQueryParams ? '...params' : ''} }` :
+            'undefined';
+          queryKey = `[...${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.${safeKeyName}(${keyParams}), ...creationEntitiesKeys.list()]`;
+        } else {
+          queryKey = `[...${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.${safeKeyName}(), ...creationEntitiesKeys.list()]`;
+        }
       }
 
       content += `  return useSuspenseQuery({\n`;
       content += `    queryKey: ${queryKey},\n`;
       content += `    queryFn: ${queryFn},\n`;
+      content += `    // Default cache-disabling options (can be overridden via options)\n`;
+      content += `    staleTime: 0,\n`;
+      content += `    gcTime: 0, // replaces cacheTime in v5\n`;
+      content += `    refetchOnMount: 'always',\n`;
+      content += `    ...options,\n`;
       content += `  });\n`;
       content += `}\n\n`;
 
@@ -568,48 +743,114 @@ function generateRequestHooks(resource: string, endpoints: EndpointInfo[], resou
       content += `/**\n`;
       content += ` * Non-suspense version of ${hookName}\n`;
       content += ` */\n`;
-      content += `export function ${hookName.replace('use', 'use')}Query(${params}) {\n`;
+      const nonSuspenseOptionsType = `Omit<UseQueryOptions<${responseType}>, 'queryKey' | 'queryFn'>`;
+      const nonSuspenseOptionsParam = `options?: ${nonSuspenseOptionsType}`;
+      const nonSuspenseParams = params.replace(optionsParam, nonSuspenseOptionsParam);
+
+      content += `export function ${hookName.replace('use', 'use')}Query(${nonSuspenseParams}) {\n`;
       content += `  const { apiRequest } = useApiClient();\n\n`;
       content += `  return useQuery({\n`;
       content += `    queryKey: ${queryKey},\n`;
       content += `    queryFn: ${queryFn},\n`;
+      content += `    // Default cache-disabling options (can be overridden via options)\n`;
+      content += `    staleTime: 0,\n`;
+      content += `    gcTime: 0, // replaces cacheTime in v5\n`;
+      content += `    refetchOnMount: 'always',\n`;
+      content += `    ...options,\n`;
       content += `  });\n`;
       content += `}\n\n`;
 
     } else {
       // Generate mutation hook
       const responseType = endpoint.responseSchema || 'any';
-      const requestType = endpoint.requestSchema || 'any';
+      const requestType = endpoint.isFormData ? (formDataInterface?.interfaceName || 'FormData') : (endpoint.requestSchema || 'any');
 
-      content += `export function ${hookName}() {\n`;
+      // Add options parameter for mutations
+      let mutationVariables = '';
+      let mutationVariablesType = '';
+
+      if (hasPathParams && hasRequestBody) {
+        if (endpoint.isFormData) {
+          mutationVariables = `{ ${endpoint.pathParams.map(p => `${p}`).join(', ')}, data }: { ${endpoint.pathParams.map(p => `${p}: string`).join('; ')}; data: ${requestType} }`;
+          mutationVariablesType = `{ ${endpoint.pathParams.map(p => `${p}: string`).join('; ')}; data: ${requestType} }`;
+        } else {
+          mutationVariables = `{ ${endpoint.pathParams.map(p => `${p}`).join(', ')}, data }: { ${endpoint.pathParams.map(p => `${p}: string`).join('; ')}; data: ${requestType} }`;
+          mutationVariablesType = `{ ${endpoint.pathParams.map(p => `${p}: string`).join('; ')}; data: ${requestType} }`;
+        }
+      } else if (hasPathParams) {
+        mutationVariables = `{ ${endpoint.pathParams.join(', ')} }: { ${endpoint.pathParams.map(p => `${p}: string`).join('; ')} }`;
+        mutationVariablesType = `{ ${endpoint.pathParams.map(p => `${p}: string`).join('; ')} }`;
+      } else if (hasRequestBody) {
+        if (endpoint.isFormData) {
+          mutationVariables = `data: ${requestType}`;
+          mutationVariablesType = `${requestType}`;
+        } else {
+          mutationVariables = `data: ${requestType}`;
+          mutationVariablesType = `${requestType}`;
+        }
+      } else {
+        mutationVariables = 'void';
+        mutationVariablesType = 'void';
+      }
+
+      const mutationOptionsType = `Omit<UseMutationOptions<${responseType}, Error, ${mutationVariablesType}>, 'mutationFn'>`;
+
+      content += `export function ${hookName}(options?: ${mutationOptionsType}) {\n`;
       content += `  const { apiRequest } = useApiClient();\n`;
       content += `  const queryClient = useQueryClient();\n\n`;
 
-      // Build mutation function parameters
-      let mutationParams = '';
+      // Build mutation function parameters (use the same as mutationVariables for consistency)
       let pathReplacement = endpoint.path;
 
-      if (hasPathParams && hasRequestBody) {
-        mutationParams = `{ ${endpoint.pathParams.map(p => `${p}`).join(', ')}, data }: { ${endpoint.pathParams.map(p => `${p}: string`).join('; ')}; data: ${requestType} }`;
+      if (hasPathParams) {
         endpoint.pathParams.forEach(param => {
           pathReplacement = pathReplacement.replace(`{${param}}`, `\${${param}}`);
         });
-      } else if (hasPathParams) {
-        mutationParams = `{ ${endpoint.pathParams.join(', ')} }: { ${endpoint.pathParams.map(p => `${p}: string`).join('; ')} }`;
-        endpoint.pathParams.forEach(param => {
-          pathReplacement = pathReplacement.replace(`{${param}}`, `\${${param}}`);
-        });
-      } else if (hasRequestBody) {
-        mutationParams = `data: ${requestType}`;
       }
 
       content += `  return useMutation({\n`;
-      content += `    mutationFn: (${mutationParams}) => \n`;
-      content += `      apiRequest<${responseType}>(\`${pathReplacement}\`, '${endpoint.method}'${hasRequestBody ? ', data' : ''}),\n`;
-      content += `    onSuccess: () => {\n`;
+      if (endpoint.isFormData && hasRequestBody) {
+        // For FormData endpoints, create FormData inside the mutation function
+        content += `    mutationFn: (${mutationVariables}) => {\n`;
+        content += `      const formData = new FormData();\n`;
+
+        // Get the form data schema to append all properties
+        const formDataSchema = endpoint.operation.requestBody?.content?.['multipart/form-data']?.schema;
+        if (formDataSchema && formDataSchema.properties) {
+          Object.entries(formDataSchema.properties).forEach(([propName, propSchema]) => {
+            if (propSchema.type === 'string' && propSchema.format === 'binary') {
+              // Handle file properties
+              content += `      if (data.${propName}) formData.append('${propName}', data.${propName});\n`;
+            } else {
+              // Handle other properties (convert to string)
+              content += `      if (data.${propName} !== undefined) formData.append('${propName}', String(data.${propName}));\n`;
+            }
+          });
+        }
+
+        content += `      return apiRequest<${responseType}>(\`${pathReplacement}\`, '${endpoint.method}', formData);\n`;
+        content += `    },\n`;
+      } else if (mutationVariables === 'void') {
+        content += `    mutationFn: () => \n`;
+        content += `      apiRequest<${responseType}>(\`${pathReplacement}\`, '${endpoint.method}'),\n`;
+      } else {
+        content += `    mutationFn: (${mutationVariables}) => \n`;
+        content += `      apiRequest<${responseType}>(\`${pathReplacement}\`, '${endpoint.method}'${hasRequestBody ? ', data' : ''}),\n`;
+      }
+      content += `    onSuccess: (data, variables, context) => {\n`;
       content += `      // Invalidate related queries\n`;
       content += `      queryClient.invalidateQueries({ queryKey: ${resource.replace(/-([a-z])/g, g => g[1].toUpperCase())}Keys.all });\n`;
+      content += `      // Invalidate all queries that contain creation entities keys\n`;
+      content += `      queryClient.invalidateQueries({\n`;
+      content += `        predicate: (query) => {\n`;
+      content += `          const queryKey = query.queryKey as string[];\n`;
+      content += `          return queryKey.includes('creation-entities');\n`;
+      content += `        }\n`;
+      content += `      });\n`;
+      content += `      // Call user-provided onSuccess if it exists\n`;
+      content += `      options?.onSuccess?.(data, variables, context);\n`;
       content += `    },\n`;
+      content += `    ...options,\n`;
       content += `  });\n`;
       content += `}\n\n`;
     }
@@ -631,6 +872,83 @@ function generateRequestHooks(resource: string, endpoints: EndpointInfo[], resou
   }
 
   return content;
+}
+
+// Extract error entities from response descriptions
+function extractErrorEntities(paths: Record<string, PathObject>): Set<string> {
+  const errorEntities = new Set<string>();
+
+  Object.values(paths).forEach(pathItem => {
+    const operations = [
+      pathItem.get,
+      pathItem.post,
+      pathItem.put,
+      pathItem.patch,
+      pathItem.delete
+    ].filter(Boolean) as OperationObject[];
+
+    operations.forEach(operation => {
+      if (operation.responses) {
+        Object.entries(operation.responses).forEach(([statusCode, response]) => {
+          // Look for error responses (4xx, 5xx)
+          if (statusCode.startsWith('4') || statusCode.startsWith('5')) {
+            const description = response.description || '';
+
+            // Extract error entities from description using regex
+            // Look for patterns like "errors</strong>: ErrorName1, ErrorName2, ErrorName3"
+            const errorPattern = /<strong>errors<\/strong>:\s*([^<]+)/gi;
+            const errorMatch = errorPattern.exec(description);
+
+            if (errorMatch) {
+              const errorsList = errorMatch[1];
+              // Split by comma and clean up each error name
+              const errors = errorsList.split(',').map(error => error.trim());
+
+              errors.forEach(error => {
+                // Clean up the error name (remove extra spaces, etc.)
+                const cleanError = error.trim();
+                if (cleanError && cleanError !== '') {
+                  errorEntities.add(cleanError);
+                }
+              });
+            }
+          }
+        });
+      }
+    });
+  });
+
+  return errorEntities;
+}
+
+// Generate error entities file
+function generateErrorEntitiesFile(errorEntities: Set<string>): void {
+  const sortedErrors = Array.from(errorEntities).sort();
+
+  let content = '// Generated from Swagger on ' + new Date().toISOString() + '\n\n';
+  content += 'export enum ErrorEntity {\n';
+
+  sortedErrors.forEach(error => {
+    content += `  ${error} = "${error}",\n`;
+  });
+
+  content += '}\n';
+
+  fs.writeFileSync(ERROR_ENTITIES_FILE, content);
+  console.log(`Generated error entities ${ERROR_ENTITIES_FILE} with ${sortedErrors.length} error types`);
+}
+
+// Generate creation entities keys file
+function generateCreationEntitiesKeysFile(): void {
+  let content = '// Generated from Swagger on ' + new Date().toISOString() + '\n\n';
+  content += '// Creation entities query keys - shared across all resources\n';
+  content += 'export const creationEntitiesKeys = {\n';
+  content += '  all: [\'creation-entities\'] as const,\n';
+  content += '  list: () => [...creationEntitiesKeys.all, \'list\'] as const,\n';
+  content += '};\n';
+
+  fs.writeFileSync(CREATION_ENTITIES_KEYS_FILE, content);
+  console.log(`Generated creation entities keys ${CREATION_ENTITIES_KEYS_FILE}`);
 }
 
 // Main generation function
@@ -662,15 +980,12 @@ async function generateInterfaces(): Promise<void> {
         resourceSchemas[resource] = new Set<string>();
       }
 
-      const operations = [
-        pathItem.get,
-        pathItem.post,
-        pathItem.put,
-        pathItem.patch,
-        pathItem.delete
-      ].filter(Boolean) as OperationObject[];
+      const methods = ['get', 'post', 'put', 'patch', 'delete'] as const;
 
-      operations.forEach(operation => {
+      methods.forEach(method => {
+        const operation = pathItem[method];
+        if (!operation) return;
+
         // Check request schema
         if (operation.requestBody?.content?.['application/json']?.schema) {
           const schema = operation.requestBody.content['application/json'].schema;
@@ -685,6 +1000,20 @@ async function generateInterfaces(): Promise<void> {
                 });
               }
             }
+          }
+        }
+
+        // Check FormData schema - generate synthetic schema for interfaces
+        if (operation.requestBody?.content?.['multipart/form-data']?.schema) {
+          const formDataSchema = operation.requestBody.content['multipart/form-data'].schema;
+          if (formDataSchema && formDataSchema.properties) {
+            // Generate a synthetic schema name for the form data
+            const hookName = generateHookName(path.replace(/^\/v\d+\.\d+/, ''), method, operation);
+            const formDataSchemaName = `${hookName.charAt(0).toUpperCase()}${hookName.slice(3)}FormData`;
+
+            // Add the synthetic schema to the schemas collection
+            schemas[formDataSchemaName] = formDataSchema;
+            resourceSchemas[resource].add(formDataSchemaName);
           }
         }
 
@@ -831,6 +1160,15 @@ async function generateInterfaces(): Promise<void> {
       console.log(`Generated requests ${filePath} with ${endpoints.length} endpoints`);
     }
 
+    // Extract error entities
+    const errorEntities = extractErrorEntities(paths);
+
+    // Generate error entities file
+    generateErrorEntitiesFile(errorEntities);
+
+    // Generate creation entities keys file
+    generateCreationEntitiesKeysFile();
+
     // Format the generated files (fix glob pattern issue)
     console.log('Formatting generated files...');
     try {
@@ -838,11 +1176,22 @@ async function generateInterfaces(): Promise<void> {
       const glob = require('glob');
       const interfaceFiles = glob.sync(`${INTERFACES_OUTPUT_DIR}/*.ts`);
       const requestFiles = glob.sync(`${REQUESTS_OUTPUT_DIR}/*.ts`);
-      const allFiles = [...interfaceFiles, ...requestFiles];
+      const allFiles = [...interfaceFiles, ...requestFiles, ERROR_ENTITIES_FILE, CREATION_ENTITIES_KEYS_FILE];
 
       if (allFiles.length > 0) {
+        // Run Prettier formatting
         execSync(`npx prettier --write ${allFiles.map(f => `"${f}"`).join(' ')}`);
-        console.log(`Formatted ${allFiles.length} files`);
+        console.log(`Formatted ${allFiles.length} files with Prettier`);
+
+        // Run ESLint fixes
+        console.log('Running ESLint fixes...');
+        try {
+          execSync(`npx eslint --fix ${allFiles.map(f => `"${f}"`).join(' ')}`);
+          console.log(`Fixed ESLint issues in ${allFiles.length} files`);
+        } catch (eslintError) {
+          console.warn('Warning: Could not fix ESLint issues. Some issues might require manual fixes.');
+          console.warn('ESLint error:', eslintError instanceof Error ? eslintError.message : String(eslintError));
+        }
       }
     } catch (error) {
       console.warn('Warning: Could not format files with Prettier. Is it installed?');
